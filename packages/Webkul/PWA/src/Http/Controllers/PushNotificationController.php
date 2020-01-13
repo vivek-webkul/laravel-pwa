@@ -68,18 +68,15 @@ class PushNotificationController extends Controller
      */
     public function store(Request $request)
     {
-        // $this->validate($request, [
-        //     'title'   => 'required',
-        //     'description' => 'required',
-        //     'targeturl' => 'required',
-        //     'icon' => 'image|nullable|max:1999'
-        // ]);
-
-        // get all data from request
-         $data = $request->all();
-
+        $this->validate(request(), [
+            'title' => 'required',
+            'description' => 'required',
+            'targeturl' => 'required',
+            'image.*' => 'mimes:jpeg,jpg,bmp,png'
+        ]);
+        
         // call the repository
-        $this->pushNotificationRepository->create($data);
+        $this->pushNotificationRepository->create(request()->all());
 
          // flash message
          session()->flash('success', trans('admin::app.response.create-success', ['name' => 'Push Notification']));
@@ -95,8 +92,7 @@ class PushNotificationController extends Controller
      */
     public function edit($id)
     {
-        $pushnotification = $this->pushNotificationRepository->find($id);
-
+        $pushnotification = $this->pushNotificationRepository->findOrFail($id);
         return view($this->_config['view'], compact('pushnotification'));
     }
 
@@ -109,11 +105,24 @@ class PushNotificationController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->pushNotificationRepository->update(request()->all(), $id);
+        try {
+            $this->validate(request(), [
+                'title' => 'required',
+                'description' => 'required',
+                'targeturl' => 'required',
+                'image.*' => 'mimes:jpeg,jpg,bmp,png'
+            ]);
 
-        session()->flash('success', trans('admin::app.response.update-success', ['name' => 'Push Notification']));
+            $this->pushNotificationRepository->update(request()->all(), $id);
 
-        return redirect()->back();
+            session()->flash('success', trans('admin::app.response.update-success', ['name' => 'Push Notification']));
+
+            return redirect()->route($this->_config['redirect']);
+        } catch(\Exception $e) {
+            session()->flash('error', trans($e->getMessage()));
+
+            return redirect()->back();
+        }
     }
 
     /**

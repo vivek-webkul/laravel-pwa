@@ -2,6 +2,18 @@
 
 #### This changelog consists the bug & security fixes and new features being included in the releases listed below.
 
+## **v0.1.4(13th of January, 2020)** - *Release*
+
+- [compatible] Bagisto Version v0.1.9, v0.2.1, v0.2.2.
+
+- [Bug] Filters are not visible.
+
+- [Bug] Discount not applied on product.
+
+- [Bug] After creating configurable product all products get disappear from front-end.
+
+- [Implement] Not getting option to add coupon discount.
+
 ## **v0.1.3(26th of December, 2019)** - *Release*
 
 * [Update] Added missing language translations.

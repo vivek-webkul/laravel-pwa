@@ -54,6 +54,11 @@
                                     <td>{{ cart.formated_tax_total }}</td>
                                 </tr>
 
+                                <tr>
+                                    <td>{{ $t('Discount') }}</td>
+                                    <td> - {{ cart.formated_discount }}</td>
+                                </tr>
+
                                 <tr class="last">
                                     <td>{{ $t('Order Total') }}</td>
                                     <td>{{ cart.formated_grand_total }}</td>

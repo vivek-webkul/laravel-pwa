@@ -299,12 +299,49 @@
                                     <td>{{ cart.formated_tax_total }}</td>
                                 </tr>
 
+                                <tr>
+                                    <td>{{ $t('Discount') }}</td>
+                                    <td> - {{ cart.formated_discount }}</td>
+                                </tr>
+
                                 <tr class="last">
                                     <td>{{ $t('Order Total') }}</td>
                                     <td>{{ cart.formated_grand_total }}</td>
                                 </tr>
+                                
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-heading">{{ $t('Coupon') }}</div>
+
+                    <div class="panel-content" style="padding-left: 16px">
+                        <div class="coupon-container">
+                            <div class="discount-control" style="padding:10px;">
+                                <form data-vv-scope="coupon-form">
+                                    <div class="control-group" :class="[errors.has('coupon-form.code') ? 'has-error' : '']" >
+                                        <input type="text" class="control" v-model="coupon_code" name="code" :placeholder="$t('Enter Coupon Code')" >
+
+                                        <span class="control-error" v-if="errors.has('coupon-form.code')">{{ errors.first('coupon-form.code') }}</span>
+                                    </div>
+
+                                    <button class="btn btn-lg btn-black" style="margin: 0px auto; width: 100%;" :disabled="disable_button" @click="validateForm()">{{ $t('Applied Coupon') }}</button>
+                                </form>
+                            </div>
+
+                            <div class="applied-coupon-details" style="padding: 10px;" v-if="cart.coupon_code">
+                                <label>{{ $t('Applied Coupon :') }}</label>
+
+                                <label class="right" style="display: inline-flex; align-items: center;">
+                                    <b>{{ cart.coupon_code }}</b>
+
+                                    <span class="icon sharp-cross-icon" :title="$t('Remove Coupon')" @click="removeCoupon"></span>
+                                </label>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -378,12 +415,19 @@
 
                 selected_payment_method: '',
 
+                coupon_code: '',
+
+                error_message: '',
+
+                route_name: "{{ request()->route()->getName() }}",
+
                 disable_button: false,
 
                 formScopes: {
                     1: 'address-form',
                     2: 'shipping-form',
-                    3: 'payment-form'
+                    3: 'payment-form',
+                    4: 'coupon-form'
                 }
             }
         },
@@ -459,6 +503,8 @@
                             this.saveShipping();
                         } else if (this.formScopes[this.step] == 'payment-form') {
                             this.savePayment();
+                        } else if (this.formScopes[this.step] == 'coupon-form') {
+                            this.saveCoupon();
                         }
                     }
                 });
@@ -538,12 +584,50 @@
                         this_this.disable_button = false;
 
                         this_this.cart = response.data.data.cart;
-
+console.log(this_this.cart);
                         this_this.step++;
                     })
                     .catch(function (error) {
                         this_this.disable_button = false;
                     })
+            },
+
+            saveCoupon: function() {
+                var self = this;
+
+                if (! self.coupon_code.length)
+                    return;
+
+                self.disable_button = true;
+
+                this.$http.post('/api/checkout/cart/apply-coupon', { 'code': self.coupon_code })
+                    .then(function(response) {
+                        self.disable_button = false;
+
+                        self.cart = response.data.data.cart;
+                    })
+                    .catch(function (error) {
+                        self.disable_button = false;
+                    });
+            },
+
+            removeCoupon: function () {
+                var self = this;
+
+                this.$http.post('/api/checkout/cart/remove-coupon')
+                    .then(function(response) {
+
+                        self.cart = response.data.data.cart;
+
+                        window.flashMessages = [{'type': 'alert-success', 'message': response.data.message}];
+
+                        self.$root.addFlashMessages();
+                    })
+                    .catch(function(error) {
+                        window.flashMessages = [{'type': 'alert-error', 'message': error.response.data.message}];
+
+                        self.$root.addFlashMessages();
+                    });
             },
 
             placeOrder () {
